@@ -83,6 +83,7 @@ def main():
         h = seg[(seg.video_id == vid) & seg.onset.round(3).isin(bo.onset[bo.video_id == vid].round(3))]
         if len(h):
             k.loc[g.index, "heard"] = ((m >= h.onset.values - 1e-3) & (m <= h.offset.values + 1e-3)).any(1)
+    k[["tok_id", "vtc_kchi", "heard", "adult_overlap"]].to_csv(a.work / "token_flags.csv", index=False)
     print("\n4. KCHI verb rate under combined filters")
     rows = []
     for b, gb in k.groupby("band"):

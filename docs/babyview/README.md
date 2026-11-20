@@ -190,3 +190,21 @@ overregularisations at child base rates (a few percent of irregular past tokens)
 **Status:** the scorer is calibrated as a detector of invented words, but it doesn't
 produce a clean infant word stream. The next decisive step is human listening to a sample
 of the filtered tokens.
+
+## Listening check (`09_listening_sheet.py`, `CODING.md`, 2026-11-20)
+
+There are 249 clips in `/data2/mcfrank/tp_babyview/listening/` on ccn2 (private; not in this
+repo). Each is a target word with ±1.5 s of context, median 3.2 s. Strata (coders see
+none of this):
+
+| stratum | n | why |
+|---|---|---|
+| A: <14 mo, every filter passed | 60 | what are the puzzling adult-like "child" words? |
+| B: <14 mo, child voice, support < 0.5 | 30 | should be invented words on babble |
+| C: 26+ mo, every filter passed | 50 | precision of the filter where the words carry signal |
+| D: 26+ mo, child voice, support < 0.5 | 30 | what the filter throws away |
+| E: 26+ mo irregular verbs (30 most regularised-sounding + 29 random) | 59 | any real *goed*-type forms? |
+| F: adult (FEM), support ≥ 0.9 | 20 | coder sanity check |
+
+`sheet.csv` is shuffled, carries no stratum, age or scores, and has `double_code` set on 51
+rows. `key.csv` holds the strata and scores. Coding instructions are in `CODING.md`.
