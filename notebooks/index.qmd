@@ -2,7 +2,7 @@
 
 {{< include _caution.qmd >}}
 
-Yang's Tolerance Principle says that a rule which could apply to $N$ items is productive only if its exceptions $e$ satisfy
+Yang's Tolerance Principle [@yang2005; @yang2016] says that a rule which could apply to $N$ items is productive only if its exceptions $e$ satisfy
 
 $$
 e \le \theta_N = \frac{N}{\ln N}.

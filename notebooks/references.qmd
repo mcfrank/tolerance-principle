@@ -1,0 +1,6 @@
+# References {.unnumbered}
+
+Bibliographic details were checked against Crossref or the publisher's page, except page numbers for the two Cognitive Science Society papers that list none.
+
+::: {#refs}
+:::

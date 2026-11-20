@@ -13,6 +13,9 @@ book:
     - 04-fragment.qmd
     - 05-description-length.qmd
     - 06-synthesis.qmd
+    - references.qmd
+
+bibliography: references.bib
 
 format:
   html:

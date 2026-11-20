@@ -11,7 +11,7 @@ import fragment as F
 
 ## The proposal
 
-Fragment Grammars (O'Donnell) treat productivity as Bayesian inference about what to store and what to compute. They are the best-developed rational account in this area, and they belong to the "learned rate" side of the distinction drawn in @sec-bayes: reuse and storage rates are inferred from data. What does a model of that kind say about a rule with exceptions?
+Fragment Grammars [@odonnell2015] treat productivity as Bayesian inference about what to store and what to compute. They extend adaptor grammars [@johnson2007] and are the best-developed rational account in this area, and they belong to the "learned rate" side of the distinction drawn in @sec-bayes: reuse and storage rates are inferred from data. What does a model of that kind say about a rule with exceptions?
 
 This chapter uses a deliberately small model in that style. It is **not** O'Donnell's implementation. It has one partially specified fragment and is small enough to score exactly.
 
@@ -21,7 +21,7 @@ The result: the model uses the rule in almost every condition, down to about thr
 
 A token is a stem with a form. It is generated from three linked processes.
 
-**Words.** A Pitman–Yor process with discount $a$ and concentration $b$. A table is either
+**Words.** A Pitman–Yor process [@pitman1997] with discount $a$ and concentration $b$. A table is either
 
 - a whole stored word, such as *go + went* or *walk + ed*, or
 - the fragment $[\,\_ + R\,]$, with an open stem slot: the productive rule.
@@ -122,7 +122,7 @@ With more exposure, frequent regular items become worth storing whole, which lea
 ## What this means
 
 - **The two accounts differ in kind.** Here productivity is driven by the presence of rare regular types, which is the logic of Baayen's hapax-based measures. Exceptions are close to irrelevant. In the Tolerance Principle, exceptions are the whole story.
-- **The model is too tolerant where the principle has been tested.** At $N = 9$ with 3 regular and 6 exceptional items, it still uses the rule at moderate exposure. Children in Schuler, Yang and Newport's experiment did not generalize in that condition.
+- **The model is too tolerant where the principle has been tested.** At $N = 9$ with 3 regular and 6 exceptional items, it still uses the rule at moderate exposure. Children in the experiment of @schuler2016 did not generalize in that condition.
 - **The claim in @sec-bayes needs refining.** A learned rate gave a constant proportion there because the alternative paid a fixed cost per item. Here both sides pay the same adaptive storage costs, and the rule wins almost always. What survives is that no logarithmic threshold appears.
 
 ## Limits of this model

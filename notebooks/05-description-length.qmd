@@ -12,7 +12,7 @@ from scipy.special import gammaln
 
 ## The proposal
 
-A rule is an efficient way to store examples. Start from compression: the learner adopts the rule when "rule plus exceptions" is a shorter description of the lexicon than a list of every item's form. This is the same calculation as @sec-bayes read as code lengths, but the storage framing raises its own questions: what the rule's own length is, whether the order of rule and exceptions matters, and what memory limits do.
+A rule is an efficient way to store examples. Start from compression, as in the minimum description length tradition [@grunwald2007]: the learner adopts the rule when "rule plus exceptions" is a shorter description of the lexicon than a list of every item's form. This is the same calculation as @sec-bayes read as code lengths, but the storage framing raises its own questions: what the rule's own length is, whether the order of rule and exceptions matters, and what memory limits do.
 
 The result: an optimal code gives a constant proportion of $N$, with the small-$N$ trend running the wrong way. The Tolerance Principle's form appears when the exceptions are stored as an **ordered list of named items** instead of as a set. The difference between the two is exactly the information in the ordering.
 

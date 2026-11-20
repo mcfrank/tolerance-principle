@@ -63,15 +63,16 @@ ax.set_xlabel("N"); ax.set_ylabel("tolerated proportion of exceptions"); ax.lege
 
 ## What the data require
 
-This section summarizes a literature pass that has **not** been checked against the primary sources; see `notes/tp_evidence.md` for the table and the status of each number.
+This section summarizes a literature pass. The bibliographic details of the works cited have been verified, but the numbers quoted from them were extracted by an automated reading and have not been re-checked by hand; see `notes/tp_evidence.md` for the full table and the status of each number.
 
 The principle was derived as $N/\ln N$, but the evidence constrains the functional form only loosely.
 
-- **Experiments cover $N = 9$ to $24$,** and child experiments stop at 16. In that range $N/\ln N$ tolerates 46% down to 31% exceptions, which is hard to tell apart from a fixed cutoff of 35 to 45%.
-- **The best-known experiment does not separate $N/\ln N$ from a majority rule over types.** With 9 items, children generalized when 5 were regular and 4 exceptional and did not when 3 were regular and 6 exceptional. Any cutoff between 44% and 67% predicts that. What the experiment rules out is accounts based on token frequency or on the most common form.
-- **The strongest evidence that the threshold depends on $N$ is a comparison across studies:** 4 exceptions of 9 tolerated in one, 6 of 16 not tolerated in another. No single fixed proportion fits both, but the studies differ in laboratory, age, task and type of exception.
+- **Experiments cover $N = 9$ to $24$** [@schuler2016; @hernandez2019; @shi2023; @jarosz2025], and child experiments stop at 16. In that range $N/\ln N$ tolerates 46% down to 31% exceptions, which is hard to tell apart from a fixed cutoff of 35 to 45%.
+- **The best-known experiment does not separate $N/\ln N$ from a majority rule over types.** With 9 items, children in @schuler2016 generalized when 5 were regular and 4 exceptional and did not when 3 were regular and 6 exceptional. Any cutoff between 44% and 67% predicts that. What the experiment rules out is accounts based on token frequency or on the most common form.
+- **The strongest evidence that the threshold depends on $N$ is a comparison across studies:** 4 exceptions of 9 tolerated by children in @schuler2016, 6 of 16 not tolerated by infants in @shi2023. No single fixed proportion fits both, but the studies differ in laboratory, age, task and type of exception.
 - **Larger natural cases rule out majority but not a cutoff near 30%.**
-- **The most direct developmental test goes against it:** in one analysis of eight children, seven had more irregular verbs than the threshold allows when they first overregularized.
+- **The most direct developmental test goes against it:** in the analysis of @ma2022, seven of eight children had more irregular verbs than the threshold allows when they first overregularized. Yang's own counts for two of those children also exceed it [@yang2016].
+- **Other departures.** In a preregistered study, the condition with 5 regular and 4 exceptional items was not categorical when the four exceptions shared one form [@hernandez2019]. Adults match frequencies with no step [@schuler2016; @jarosz2025].
 - **No study holds the proportion of exceptions fixed while varying $N$,** which is the design that would test the functional form.
 
 Taken at face value, the two child experiments require the tolerated proportion to fall from at least 44% at $N = 9$ to under 37.5% at $N = 16$.
@@ -94,7 +95,7 @@ t["fits both"] = (t.iloc[:, 0] >= 4) & (t.iloc[:, 1] < 6)
 t
 ```
 
-$N/\ln N$ passes narrowly. The cost model it is derived from does not: solved exactly it allows 6 exceptions at $N = 16$, and in its harmonic form it allows only 3 at $N = 9$. The named-list family cannot fit both: it needs $c > 1.76$ to allow 4 of 9 and $c < 1.66$ to reject 6 of 16, because it declines more slowly than $N/\ln N$. A square-root law fits both but fails at large $N$. Either $N/\ln N$ is remarkably accurate in this range, or the comparison across studies is not sound. Only a study within one paradigm can say which.
+$N/\ln N$ passes narrowly. The cost model it is derived from does not: solved exactly it allows 6 exceptions at $N = 16$, and in its harmonic form it allows only 3 at $N = 9$, a point @yang2018guide acknowledges. The named-list family cannot fit both: it needs $c > 1.76$ to allow 4 of 9 and $c < 1.66$ to reject 6 of 16, because it declines more slowly than $N/\ln N$. A square-root law fits both but fails at large $N$. Either $N/\ln N$ is remarkably accurate in this range, or the comparison across studies is not sound. Only a study within one paradigm can say which.
 
 ## Where this leaves the question
 

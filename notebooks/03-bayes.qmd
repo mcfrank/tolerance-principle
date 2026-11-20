@@ -22,7 +22,7 @@ The learner adopts the rule when it has the higher marginal likelihood. The resu
 
 Suppose each item's form is deterministic. After an item's first token, both hypotheses predict its form with certainty, so later tokens carry no information about which hypothesis is right. The evidence is the lexicon of types, $(N, e)$, whatever the token frequencies. Zipfian sampling matters only through which types have been heard so far.
 
-This is a principled reason for the principle's most distinctive empirical property, that it counts types and ignores token frequency. It is the same logic as in two-stage models of the lexicon (Goldwater, Griffiths and Johnson), where the generator of forms sees each stored item once.
+This is a principled reason for the principle's most distinctive empirical property, that it counts types and ignores token frequency. It is the same logic as in two-stage models of the lexicon [@goldwater2011], where the generator of forms sees each stored item once.
 
 ## Costs
 
@@ -56,7 +56,7 @@ $$
 h(x) \;<\; (1 - x)\ln K ,
 $$
 
-which depends on $x$ alone. The threshold is a **constant proportion** of $N$. The cost per exception has fallen from $\ln N$ to about $\ln(N/e) + 1$, because a learner who knows that 30% of items are exceptions is no longer surprised by each one.
+which depends on $x$ alone. The threshold is a **constant proportion** of $N$. The cost per exception has fallen from $\ln N$ to about $\ln(N/e) + 1$, because a learner who knows that 30% of items are exceptions is no longer surprised by each one. Models that score a rule by its estimated reliability, such as that of @albright2003, are on this side of the distinction.
 
 ## Results
 

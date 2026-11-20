@@ -11,14 +11,14 @@ import tp_checks as tp
 
 ## The claim
 
-A rule over $N$ items is productive if and only if its exceptions number at most $\theta_N = N/\ln N$. The derivation, from Yang (2005, 2016), compares the expected time to process a word under two ways of organizing the lexicon, and says the learner adopts the rule when it is the faster of the two.
+A rule over $N$ items is productive if and only if its exceptions number at most $\theta_N = N/\ln N$. The derivation, from @yang2005 and @yang2016, compares the expected time to process a word under two ways of organizing the lexicon, and says the learner adopts the rule when it is the faster of the two.
 
 ## The cost model
 
 There are four ingredients.
 
 1. **The Elsewhere Condition as a procedure.** Exceptions are checked before the rule applies. A rule-following item therefore waits until every exception has been ruled out.
-2. **Serial, frequency-ranked search.** A list is searched in order of frequency, and the time to reach an item is proportional to its rank in the list.
+2. **Serial, frequency-ranked search.** A list is searched in order of frequency, and the time to reach an item is proportional to its rank in the list. This follows rank-based serial models of lexical access [@murray2004].
 3. **Zipf's law.** The item at rank $i$ has probability $p_i = 1/(i\,H_N)$.
 4. **The learner chooses the faster organization.**
 
@@ -87,7 +87,7 @@ ax.set_xscale("log"); ax.set_xlabel("N"); ax.set_ylabel("tolerated proportion of
 ax.legend();
 ```
 
-The differences are small in absolute terms, but they matter at the sizes where the principle has been tested experimentally. At $N = 9$ the harmonic form allows 3 exceptions and the other two allow 4. The best-known experimental test (Schuler, Yang and Newport) used 4 exceptions among 9 items, so the reading of the model matters to whether the prediction held. At larger $N$ the exact solution is about 5% more tolerant than $N/\ln N$.
+The differences are small in absolute terms, but they matter at the sizes where the principle has been tested experimentally. At $N = 9$ the harmonic form allows 3 exceptions and the other two allow 4. The best-known experimental test [@schuler2016] used 4 exceptions among 9 items, so the reading of the model matters to whether the prediction held. At larger $N$ the exact solution is about 5% more tolerant than $N/\ln N$.
 
 ## The assumption that carries the weight
 
@@ -134,9 +134,11 @@ Real irregulars are concentrated among frequent items. In English child-directed
 
 ## Other assumptions
 
-- **Serial rank-based search** is not the standard view of lexical access, and it predicts that regular forms are slower than frequency-matched irregular ones.
+- **Serial rank-based search** [@murray2004] is not the standard view of lexical access, and it predicts that regular forms are slower than frequency-matched irregular ones.
 - **Zipf's exponent is exactly 1.** The $N/\ln N$ form depends on it.
 - **The linking hypothesis is not derived.** The model says which organization is faster. It does not say why speed of access should decide what the grammar is, or why the switch should be categorical at the point of equal cost.
+
+Published commentaries that press on the principle include @kapatsinski2018 and @goldberg2018, both responses to @yang2018lab. They are listed here for the reader; this chapter does not summarize them.
 
 ## Summary
 

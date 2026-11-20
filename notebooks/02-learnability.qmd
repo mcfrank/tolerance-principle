@@ -56,7 +56,7 @@ Suppose saying a wrong form costs $\lambda$ times as much as saying nothing. The
 
 ### Interference between rule and memory
 
-Suppose the rule competes with stored exceptions, so that an exception heard $c$ times is still regularized with probability $1/(1+c)$. The lister has no competitor and makes no such errors. For $c \sim \text{Poisson}(S p_i)$,
+Suppose the rule competes with stored exceptions, in the spirit of the blocking-and-retrieval-failure account of overregularization [@marcus1992], so that an exception heard $c$ times is still regularized with probability $1/(1+c)$. The lister has no competitor and makes no such errors. For $c \sim \text{Poisson}(S p_i)$,
 
 $$
 \mathbb{E}\Big[\frac{1}{1+c}\Big] = \frac{1 - e^{-S p_i}}{S p_i},
@@ -64,13 +64,13 @@ $$
 \text{error} = \sum_{i\in E} p_i \,\frac{1 - e^{-S p_i}}{S p_i} = \frac{1}{S}\sum_{i \in E}\big(1 - e^{-S p_i}\big).
 $$
 
-Each exception that has been heard contributes $1/S$, whatever its frequency. With frequency-neutral exceptions the rule learner's error is about $(e/N)\,N_{\text{seen}}/S$, where $N_{\text{seen}}$ is the number of types heard. The lister's error is the unheard probability mass, which by the Good–Turing identity is about $N_1/S$, with $N_1$ the number of types heard exactly once. The rule is preferred when
+Each exception that has been heard contributes $1/S$, whatever its frequency. With frequency-neutral exceptions the rule learner's error is about $(e/N)\,N_{\text{seen}}/S$, where $N_{\text{seen}}$ is the number of types heard. The lister's error is the unheard probability mass, which by the Good–Turing identity [@good1953] is about $N_1/S$, with $N_1$ the number of types heard exactly once. The rule is preferred when
 
 $$
 \frac{e}{N} \;<\; \frac{N_1}{N_{\text{seen}}} .
 $$
 
-**The proportion of exceptions must be below the proportion of hapaxes.** This is close to Baayen's corpus measure of productivity, and it contains no logarithm: at $t=1$ the right-hand side is a constant, about 0.26.
+**The proportion of exceptions must be below the proportion of hapaxes.** This is close to Baayen's corpus measure of productivity [@baayen1992; @baayen2001], and it contains no logarithm: at $t=1$ the right-hand side is a constant, about 0.26.
 
 ### Not storing exceptions
 
