@@ -1,0 +1,164 @@
+# Description length {#sec-mdl}
+
+{{< include _caution.qmd >}}
+
+```{python}
+#| label: setup-mdl
+%run _setup.py
+import mdl as M
+from scipy.special import gammaln
+%matplotlib inline
+```
+
+## The proposal
+
+A rule is an efficient way to store examples. Start from compression: the learner adopts the rule when "rule plus exceptions" is a shorter description of the lexicon than a list of every item's form. This is the same calculation as @sec-bayes read as code lengths, but the storage framing raises its own questions: what the rule's own length is, whether the order of rule and exceptions matters, and what memory limits do.
+
+The result: an optimal code gives a constant proportion of $N$, with the small-$N$ trend running the wrong way. The Tolerance Principle's form appears when the exceptions are stored as an **ordered list of named items** instead of as a set. The difference between the two is exactly the information in the ordering.
+
+## Two codes for the exceptions
+
+Storing one form costs $c$ nats. Listing everything costs $N c$. The rule costs its own length $r$, plus $e\,c$ for the exceptions' forms, plus the cost of saying *which* items are exceptions. There are two natural ways to say that.
+
+**As a set.** The optimal code for an unordered subset of size $e$:
+
+$$
+L_{\text{set}} = \ln\binom{N}{e} + \ln(N+1) \;\approx\; e \ln\frac{N}{e} + e .
+$$
+
+This is equivalent to a cheap regular-or-irregular flag on every lexical entry, with regular items paying about $x$ nats each and exceptions about $\ln(1/x)$.
+
+**As a list.** Each exception is a separate entry that names its item. Naming one of $N$ items costs $\ln N$:
+
+$$
+L_{\text{list}} = e \ln N .
+$$
+
+This is what an explicit condition on the rule costs ("applies except to *go*, *sing*, ..."), and what a separate table of exceptions keyed by item costs.
+
+### Thresholds
+
+With the set code and large $N$, the rule wins when
+
+$$
+\frac{h(x)}{1-x} < c ,
+$$
+
+a constant proportion depending only on $c$. With the list code, the rule wins when $e(\ln N + c) < N c$, that is
+
+$$
+e < \frac{N c}{\ln N + c}.
+$$
+
+```{python}
+#| label: tbl-codes
+#| tbl-cap: "Tolerated proportion of exceptions under the set code and the list code, for three costs per form."
+Ns = [9, 30, 100, 1000, 10_000, 100_000]
+cs = {"ln 2": np.log(2), "1": 1.0, "ln 4": np.log(4)}
+rows = []
+for N in Ns:
+    row = {"N": N, "1 / ln N": 1 / np.log(N)}
+    for lab, c in cs.items():
+        row[f"set, c = {lab}"] = M.thr(N, M.rule_set, c) / N
+    for lab, c in cs.items():
+        row[f"list, c = {lab}"] = M.thr(N, M.rule_list, c) / N
+    rows.append(row)
+pd.DataFrame(rows).set_index("N").round(3)
+```
+
+```{python}
+#| label: fig-codes
+#| fig-cap: "Set code against list code at c = 1 nat. The set code rises to a constant; the list code falls with N alongside 1/ln N."
+NN = np.unique(np.round(np.logspace(np.log10(6), 5, 60)).astype(int))
+fig, ax = plt.subplots()
+ax.plot(NN, [M.thr(n, M.rule_set, 1.0) / n for n in NN], label="set code")
+ax.plot(NN, [M.thr(n, M.rule_list, 1.0) / n for n in NN], label="list code")
+ax.plot(NN, 1 / np.log(NN), "k--", lw=1, label="1 / ln N")
+ax.set_xscale("log"); ax.set_xlabel("N"); ax.set_ylabel("tolerated proportion of exceptions"); ax.legend();
+```
+
+Two points about the set code.
+
+- **It is stricter at small $N$, not more lenient.** The fixed overhead (the rule, and stating how many exceptions there are) is spread over more items as $N$ grows. The Tolerance Principle runs the other way.
+- **Against a fully optimal lister there is no threshold at all.** A lister that codes forms by their frequency gives the regular form a short codeword, and that *is* the set code. Under fully optimal coding productivity is graded: the regular form costs $-\ln(1-x)$. A threshold appears only when two deliberately different families of code are compared.
+
+## What the list costs beyond the set
+
+The gap between the two codes is
+
+$$
+e \ln N - \ln\binom{N}{e} \;=\; \ln e! + \ln\frac{N^{e}}{N(N-1)\cdots(N-e+1)} \;\approx\; \ln e! ,
+$$
+
+the number of nats needed to specify an ordering of $e$ things.
+
+```{python}
+#| label: tbl-order
+#| tbl-cap: "The extra cost of an ordered list over a set, at e = N / ln N, compared with ln e!."
+rows = []
+for N in Ns:
+    e = int(N / np.log(N))
+    rows.append({"N": N, "e": e, "list - set": e * np.log(N) - M.log_choose(N, e), "ln e!": gammaln(e + 1)})
+pd.DataFrame(rows).set_index("N").round(1)
+```
+
+This connects the storage account back to Yang's. His exception list is ordered, by frequency, and the ordering is what serial search uses. An ordered list costs $\ln e!$ more to store, and it costs a regular item $e$ steps to get past. The processing model of @sec-derivation and the list code are the same structure seen from two sides.
+
+## Does the order of rule and exceptions matter?
+
+One might think that applying the rule *first* changes the calculation, because the rule then needs a condition saying where it does not apply, and that condition grows with the number of exceptions.
+
+In information terms it does not matter. Either way the description must identify which $e$ of the $N$ items are exceptional, and the minimum is $\ln\binom{N}{e}$ whether it is called an exception list or a condition on the rule. The order of application is a fact about processing.
+
+What matters is the format in which the exceptions are written: jointly, as a set, or one at a time, as named items. And if the exceptions are themselves covered by a rule, the condition stops growing with $e$ altogether. That is the recursive subdivision that Yang's account uses when a rule fails.
+
+## A rule whose length grows
+
+Let the rule itself cost $k \ln N$ nats, as it would if its structural description had to pick out a class that grows.
+
+```{python}
+#| label: tbl-rule-length
+#| tbl-cap: "Set code, c = 1: tolerated proportion when the rule costs k ln N nats. Negative means the rule is never preferred."
+rows = [{"N": N, **{f"k = {k}": M.thr(N, lambda n, e, c, k=k: M.rule_set(n, e, c, k * np.log(n)), 1.0) / N
+                    for k in (0, 5, 20)}} for N in Ns]
+pd.DataFrame(rows).set_index("N").round(3)
+```
+
+A rule cost that grows with $N$ only matters at small $N$, where it makes the rule lose outright. To bend the curve in the Tolerance direction the cost has to grow with the number of *exceptions*, which is the list code.
+
+## Memory limits
+
+Does a capacity limit make optimal coding less tolerant at large $N$?
+
+- **Capacity proportional to $N$:** the condition is again on $x$ alone, so a constant proportion.
+- **Fixed capacity $B$:** the number of exceptions that fit falls slowly as $N$ grows, because each costs about $\ln(N/e) + 1 + c$.
+
+```{python}
+#| label: tbl-capacity
+#| tbl-cap: "Most exceptions that fit in a fixed budget of B nats (set code, c = 1)."
+rows = []
+for N in Ns[2:]:
+    row = {"N": N}
+    for Bcap in (200, 2000):
+        e = np.arange(0, N)
+        ok = np.nonzero(M.rule_set(N, e, 1.0) <= Bcap)[0]
+        row[f"B = {Bcap}"] = int(ok[-1]) if len(ok) else 0
+    rows.append(row)
+pd.DataFrame(rows).set_index("N")
+```
+
+The direction is right but the form is about $B/\ln(N/e)$, tied to the budget and not to $N/\ln N$.
+
+Where a resource argument may help is in explaining why the code would be a list in the first place. The set code requires knowing the exception rate and re-encoding the lexicon jointly whenever it changes. A learner who stores exceptions one at a time, in a growing lexicon, and who needs to look each one up directly, is pushed toward individually addressed entries. That argument has not been made rigorous here.
+
+## A caution about representation
+
+Description-length results depend on what is taken to be stored already.
+
+- If stems are stored anyway and an irregular form simply attaches to its stem, no address is needed. That is the set code.
+- If the lister also needs a pointer from each stored form to its stem, both sides pay $\ln N$ per item and the rule always wins.
+- $N c/(\ln N + c)$ needs a specific asymmetry: exceptions addressed individually, against a dense list that needs no addresses.
+
+## Summary
+
+Optimal description length gives a constant proportion of exceptions, and is stricter at small $N$. The form $N/\ln N$ appears when each exception is written as a separately named entry, at $\ln N$ nats apiece, and the excess over the optimal code is the cost of keeping the exceptions in order. As in @sec-bayes, the constant ($c$) is free.

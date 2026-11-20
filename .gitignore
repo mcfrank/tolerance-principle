@@ -2,3 +2,6 @@ data/*.csv
 data/*.npz
 data/babyview/
 __pycache__/
+notebooks/_book/
+.quarto/
+*_files/

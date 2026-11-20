@@ -1,0 +1,51 @@
+# Overview {.unnumbered}
+
+{{< include _caution.qmd >}}
+
+Yang's Tolerance Principle says that a rule which could apply to $N$ items is productive only if its exceptions $e$ satisfy
+
+$$
+e \le \theta_N = \frac{N}{\ln N}.
+$$
+
+It is a strong claim. It is stricter than majority rule once $N$ exceeds about 8, and the tolerated *proportion* of exceptions, $1/\ln N$, keeps shrinking as the class grows: about 46% at $N = 9$, 22% at $N = 100$, 14% at $N = 1{,}000$.
+
+The principle is usually derived from a model of real-time lexical processing. This book asks two questions about that derivation.
+
+1. Does the derivation hold up on its own terms?
+2. Is there an independent rational analysis, of learning, inference or storage, that yields the same threshold?
+
+## Short answers
+
+1. **The derivation is fragile.** The threshold follows from a serial-search cost model only if exceptions are no more frequent than regular items. When exceptions are frequent, as they are in English, the same cost model tolerates far more than $N/\ln N$ (@sec-derivation).
+2. **Most rational analyses do not produce it.** A learner minimizing errors never has a reason to reject a rule (@sec-learnability). Bayesian model comparison and optimal description length give a threshold that is a constant proportion of $N$ (@sec-bayes, @sec-mdl). A storage-versus-computation model in the style of Fragment Grammars is far more permissive still (@sec-fragment).
+3. **One structural assumption does produce it.** $N/\ln N$ appears whenever each exception carries its own fixed cost of about $\ln N$ that is not shared with the other exceptions: a step in a serial search, a full address in memory, or a separate surprise under a prior that says rules have about one exception. Wherever the cost of exceptions can be pooled, the logarithm disappears (@sec-synthesis).
+
+## Chapters
+
+| Chapter | Question | Result |
+|---|---|---|
+| @sec-derivation | What is Yang's derivation, and how robust is it? | Gives $N/\ln N$ only for frequency-neutral exceptions |
+| @sec-learnability | Does an error-minimizing learner under Zipfian input need a threshold? | No: a rule with memorized exceptions never loses |
+| @sec-bayes | Does Bayesian comparison of "rule" and "no rule" give it? | Only with a fixed prior of about one exception per rule |
+| @sec-fragment | What does a storage-versus-computation model predict? | The rule survives almost any number of exceptions |
+| @sec-mdl | What does optimal description length predict? | A constant proportion; $N/\ln N$ needs an ordered list of named exceptions |
+| @sec-synthesis | What do the positive cases share, and what do the data require? | Unshared exception costs; the data do not pin down the functional form |
+
+## Notation
+
+Used throughout:
+
+| Symbol | Meaning |
+|---|---|
+| $N$ | number of item types the rule could apply to |
+| $e$ | number of those items that are exceptions |
+| $x = e/N$ | proportion of exceptions |
+| $\theta_N = N/\ln N$ | the tolerance threshold |
+| $H_N = \sum_{i=1}^{N} 1/i$ | the $N$th harmonic number, $\approx \ln N + 0.577$ |
+| $p_i = 1/(i\,H_N)$ | Zipfian probability of the item at frequency rank $i$ |
+| $S$ | number of tokens the learner has heard |
+| $K$ | number of possible forms an item could take |
+| $c$ | cost in nats of storing one form ($c = \ln K$ when forms are equiprobable) |
+
+All costs are in nats. Every table and figure is computed in the chapter from the code in `sims/`.

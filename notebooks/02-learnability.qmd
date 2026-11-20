@@ -1,0 +1,141 @@
+# An error-minimizing learner {#sec-learnability}
+
+{{< include _caution.qmd >}}
+
+```{python}
+#| label: setup-learnability
+%run _setup.py
+import learnability as L
+%matplotlib inline
+```
+
+## The proposal
+
+Perhaps the threshold comes from learning, not processing. A learner hears a limited, Zipfian sample of tokens. A productive rule is useful for items it has not yet heard, and harmful when it is applied to an exception it has not yet learned. If the harm outweighs the benefit when exceptions are too many, a rational learner would hold back, and the crossover might fall near $N/\ln N$.
+
+It does not. The result of this chapter is that under a symmetric loss a rule with memorized exceptions is *never* worse than having no rule, so there is no threshold at all. Getting a threshold requires adding a cost of productivity from outside the learning problem, and the natural ways of adding one give a constant proportion.
+
+## The model
+
+- $N$ item types with Zipfian probabilities $p_i$; $e$ of them are exceptions to a rule $R$.
+- The learner hears $S$ tokens. Each shows an item with its correct form. Item $i$ has been heard $c_i$ times.
+- The learner is then asked to produce the form for the next token, and is wrong or right (0/1 loss).
+
+Sample size is $S = t\,N H_N$. At $t = 1$ the rarest item is expected once and the mean number of tokens per type is $H_N$.
+
+Four learners:
+
+| Learner | Policy | Wrong when |
+|---|---|---|
+| **Lister** | no rule | the item has never been heard |
+| **Rule + memory** | apply $R$ unless the item has been heard as an exception | the item is an exception never heard |
+| **Rule competing with memory** | an exception heard $c$ times is still regularized with probability $1/(1+c)$ | an exception loses the competition |
+| **Pure rule** | always apply $R$; never store exceptions | the item is an exception |
+
+## A rule with memorized exceptions never loses
+
+Write $u_i = \Pr(c_i = 0)$ for the chance that item $i$ is still unheard, and let $E$ be the set of exceptions. Expected error on the next token is
+
+$$
+\text{Lister: } \sum_{i=1}^{N} p_i\,u_i
+\qquad\qquad
+\text{Rule + memory: } \sum_{i \in E} p_i\,u_i .
+$$
+
+The second sum runs over a subset of the terms of the first, so it is never larger, for any $e$, any sample size and any frequency distribution. The same holds over the whole of learning: the lister makes exactly one error per type, at its first occurrence, for $N$ in total; the rule learner makes one per exception, for $e$ in total.
+
+The rule only ever helps, because it only acts on items the learner would otherwise get wrong. An accuracy-based account has no cost of productivity to trade against.
+
+## Adding a cost of productivity
+
+Three ways to break the dominance.
+
+### Asymmetric loss
+
+Suppose saying a wrong form costs $\lambda$ times as much as saying nothing. The rule is preferred when $\lambda \sum_{i\in E} p_i u_i < \sum_i p_i u_i$. With frequency-neutral exceptions the left-hand sum is $e/N$ of the right-hand one, so the condition is $e/N < 1/\lambda$: a **constant proportion**, set by the loss ratio.
+
+### Interference between rule and memory
+
+Suppose the rule competes with stored exceptions, so that an exception heard $c$ times is still regularized with probability $1/(1+c)$. The lister has no competitor and makes no such errors. For $c \sim \text{Poisson}(S p_i)$,
+
+$$
+\mathbb{E}\Big[\frac{1}{1+c}\Big] = \frac{1 - e^{-S p_i}}{S p_i},
+\qquad\text{so}\qquad
+\text{error} = \sum_{i\in E} p_i \,\frac{1 - e^{-S p_i}}{S p_i} = \frac{1}{S}\sum_{i \in E}\big(1 - e^{-S p_i}\big).
+$$
+
+Each exception that has been heard contributes $1/S$, whatever its frequency. With frequency-neutral exceptions the rule learner's error is about $(e/N)\,N_{\text{seen}}/S$, where $N_{\text{seen}}$ is the number of types heard. The lister's error is the unheard probability mass, which by the Good–Turing identity is about $N_1/S$, with $N_1$ the number of types heard exactly once. The rule is preferred when
+
+$$
+\frac{e}{N} \;<\; \frac{N_1}{N_{\text{seen}}} .
+$$
+
+**The proportion of exceptions must be below the proportion of hapaxes.** This is close to Baayen's corpus measure of productivity, and it contains no logarithm: at $t=1$ the right-hand side is a constant, about 0.26.
+
+### Not storing exceptions
+
+A pure-rule learner is wrong on every exception token. Over the whole sample it makes about $S\,e/N$ errors with frequency-neutral exceptions, against $N_{\text{seen}}$ for the lister. The rule is preferred when
+
+$$
+e \;<\; \frac{N\,N_{\text{seen}}}{S} = \frac{N_{\text{seen}}}{t\,H_N}.
+$$
+
+At $t = 1$ this is about $0.85\,N/H_N$, which is the Tolerance Principle up to a constant. But it is not a satisfactory derivation, for three reasons shown below: it moves with sample size, it collapses when exceptions are frequent, and it compares against a learner that refuses to remember exceptions.
+
+## Results
+
+```{python}
+#| label: tbl-learners
+#| tbl-cap: "Largest e at which each rule learner does no worse than the lister. Frequency-neutral exceptions, S = N H_N."
+L.rng = np.random.default_rng(1)
+Ns = [9, 20, 50, 100, 200, 500, 1000, 2000]
+rows = []
+for N in Ns:
+    nxt = L.thresholds(N, beta=0.0)
+    cum = L.cumulative_thresholds(N, beta=0.0)
+    rows.append({"N": N, "N / ln N": round(N / np.log(N), 1),
+                 "rule + memory": nxt["hybrid"],
+                 "competition (next token)": nxt["competition"],
+                 "competition (cumulative)": cum["competition"],
+                 "pure rule (cumulative)": cum["pure_rule"]})
+res = pd.DataFrame(rows).set_index("N")
+res
+```
+
+```{python}
+#| label: fig-learners
+#| fig-cap: "The same thresholds as proportions of N. Only the pure rule declines with N, and it does so because the sample size was tied to N."
+fig, ax = plt.subplots()
+for col in res.columns[1:]:
+    ax.plot(res.index, res[col] / res.index, marker="o", ms=3, label=col)
+ax.plot(res.index, 1 / np.log(res.index), "k--", lw=1, label="1 / ln N")
+ax.set_xscale("log"); ax.set_ylim(0, 1.03)
+ax.set_xlabel("N"); ax.set_ylabel("tolerated proportion of exceptions")
+ax.legend(fontsize=8);
+```
+
+- **Rule + memory** tolerates everything, as proved above.
+- **Competition** gives a constant proportion: about a quarter of the class on next-token error and about half on cumulative error.
+- **Pure rule** tracks $N/H_N$ on cumulative error.
+
+### Why the pure-rule result is not a derivation
+
+```{python}
+#| label: tbl-pure-rule
+#| tbl-cap: "The pure-rule threshold at N = 500 (N / ln N = 80.5) under different sample sizes, and with exceptions concentrated among frequent items."
+L.rng = np.random.default_rng(2)
+rows = []
+for t in (0.25, 0.5, 1, 2, 4):
+    rows.append({"sample size (units of N H_N)": t,
+                 "frequency-neutral exceptions": L.cumulative_thresholds(500, t=t, beta=0.0)["pure_rule"],
+                 "frequent exceptions (weight 1/rank)": L.cumulative_thresholds(500, t=t, beta=1.0)["pure_rule"]})
+pd.DataFrame(rows).set_index("sample size (units of N H_N)")
+```
+
+The threshold falls by an order of magnitude as the sample grows, because exception tokens keep accumulating while the number of types is capped at $N$. With frequent exceptions it is a handful at most, and one or fewer once the sample reaches $N H_N$ tokens. The agreement with $N/H_N$ at $t=1$ comes from setting $S = N H_N$ by hand: at that sample size the mean number of tokens per type is $H_N$, and that is where the logarithm enters.
+
+## Summary
+
+Sampling under Zipf's law does not produce the logarithm unaided. In every variant here, $\ln N$ appears only through $H_N$, and only when the sample size is tied to $N$.
+
+More fundamentally, error-driven learning supplies no reason to reject a rule. A cost of productivity has to come from somewhere else. The candidates are an asymmetric loss, interference between rule and memory, limits on resources, or a question of *inference*: whether the learner should believe a rule exists at all. The first two give constant proportions. The next chapter takes up the last.

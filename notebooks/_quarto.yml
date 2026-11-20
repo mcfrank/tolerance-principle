@@ -1,0 +1,31 @@
+project:
+  type: book
+  output-dir: _book
+
+book:
+  title: "Where does the Tolerance Principle come from?"
+  subtitle: "Its derivation, and rational analyses that do and do not reproduce it"
+  chapters:
+    - index.qmd
+    - 01-derivation.qmd
+    - 02-learnability.qmd
+    - 03-bayes.qmd
+    - 04-fragment.qmd
+    - 05-description-length.qmd
+    - 06-synthesis.qmd
+
+format:
+  html:
+    theme: cosmo
+    code-fold: true
+    code-summary: "Code"
+    toc: true
+    toc-depth: 3
+    df-print: paged
+
+execute:
+  freeze: auto
+  warning: false
+  message: false
+
+jupyter: python3

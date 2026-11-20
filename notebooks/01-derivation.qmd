@@ -1,0 +1,143 @@
+# Yang's derivation {#sec-derivation}
+
+{{< include _caution.qmd >}}
+
+```{python}
+#| label: setup-derivation
+%run _setup.py
+import tp_checks as tp
+%matplotlib inline
+```
+
+## The claim
+
+A rule over $N$ items is productive if and only if its exceptions number at most $\theta_N = N/\ln N$. The derivation, from Yang (2005, 2016), compares the expected time to process a word under two ways of organizing the lexicon, and says the learner adopts the rule when it is the faster of the two.
+
+## The cost model
+
+There are four ingredients.
+
+1. **The Elsewhere Condition as a procedure.** Exceptions are checked before the rule applies. A rule-following item therefore waits until every exception has been ruled out.
+2. **Serial, frequency-ranked search.** A list is searched in order of frequency, and the time to reach an item is proportional to its rank in the list.
+3. **Zipf's law.** The item at rank $i$ has probability $p_i = 1/(i\,H_N)$.
+4. **The learner chooses the faster organization.**
+
+### Listing everything
+
+With no rule, all $N$ items sit in one frequency-ordered list. The item at rank $i$ costs $i$ steps and occurs with probability $p_i$, so the expected cost is
+
+$$
+T_{\text{list}}(N) = \sum_{i=1}^{N} p_i \, i = \sum_{i=1}^{N} \frac{1}{i\,H_N}\, i = \frac{N}{H_N}.
+$$
+
+The rank cancels: every rank contributes the same amount, $1/H_N$. The cost of listing is simply the mean rank of a token.
+
+### A rule with $e$ exceptions
+
+There are two kinds of token.
+
+- A **regular** token is checked against all $e$ exceptions before the rule fires, so it costs $e$ steps whatever its frequency.
+- An **exception** token costs its rank within the list of exceptions. Yang treats that list as a Zipfian lexicon of its own with $e$ items, so by the same cancellation its mean cost is $e/H_e$.
+
+Yang takes the probability that a token is an exception to be $e/N$. Then
+
+$$
+T_{\text{rule}}(N, e) = \frac{e}{N}\cdot\frac{e}{H_e} + \Big(1 - \frac{e}{N}\Big)\, e .
+$$ {#eq-trule}
+
+### Solving
+
+The rule is preferred when $T_{\text{rule}}(N,e) \le T_{\text{list}}(N)$. Factor $e$ out of @eq-trule:
+
+$$
+e\,\Big[\,1 - \frac{e}{N}\Big(1 - \frac{1}{H_e}\Big)\Big] \le \frac{N}{H_N}.
+$$
+
+When exceptions are a small share of the class, the bracket is close to 1 and the condition is $e \lesssim N/H_N \approx N/\ln N$.
+
+So the whole result has a simple reading: **a rule costs about $e$ steps per token, listing costs the mean rank, and the mean rank of a Zipfian lexicon is $N/H_N$.** The logarithm in the Tolerance Principle is the normalizing constant of Zipf's law.
+
+## Three thresholds from one model
+
+Two approximations are hidden in the last step, and they push in opposite directions. Replacing $H_N$ by $\ln N$ raises the threshold, because $H_N > \ln N$. Dropping the bracket lowers it, because the bracket is below 1. Solving the inequality exactly gives a third answer.
+
+```{python}
+#| label: tbl-three-thresholds
+#| tbl-cap: "Largest tolerated number of exceptions under three readings of the same cost model."
+Ns = [5, 9, 16, 30, 100, 300, 1000, 5000]
+rows = []
+for N in Ns:
+    rows.append({"N": N,
+                 "N / ln N": N / np.log(N),
+                 "N / H_N": tp.t_list(N),
+                 "exact solution": tp.exact_threshold_yang(N)})
+pd.DataFrame(rows).set_index("N").round(1)
+```
+
+```{python}
+#| label: fig-exact
+#| fig-cap: "Tolerated proportion of exceptions: the exact solution of the cost inequality against the two closed forms."
+allN = np.arange(4, 3001)
+exact = np.array([tp.exact_threshold_yang(N) for N in allN])
+fig, ax = plt.subplots()
+ax.plot(allN, exact / allN, lw=1.2, label="exact solution")
+ax.plot(allN, 1 / np.log(allN), "--", lw=1.2, label="1 / ln N")
+ax.plot(allN, [1 / tp.harmonic(N) for N in allN], ":", lw=1.2, label="1 / H_N")
+ax.set_xscale("log"); ax.set_xlabel("N"); ax.set_ylabel("tolerated proportion of exceptions")
+ax.legend();
+```
+
+The differences are small in absolute terms, but they matter at the sizes where the principle has been tested experimentally. At $N = 9$ the harmonic form allows 3 exceptions and the other two allow 4. The best-known experimental test (Schuler, Yang and Newport) used 4 exceptions among 9 items, so the reading of the model matters to whether the prediction held. At larger $N$ the exact solution is about 5% more tolerant than $N/\ln N$.
+
+## The assumption that carries the weight
+
+The factor $e/N$ in @eq-trule says that exceptions carry token mass in proportion to their number of types. That is, exceptions are scattered across the frequency ranks at random. Nothing in the cost model requires this; it is an added assumption about the learner.
+
+It matters a great deal. Suppose instead the exceptions are the $e$ *most* frequent items. An exception at rank $i \le e$ then costs $i$ under either organization. A regular item at rank $i > e$ costs $e$ under the rule and $i$ under listing. Every item costs $\min(i, e) \le i$, so the rule is never slower than the list, **whatever $e$ is**. The threshold disappears.
+
+To see what happens between these extremes, draw exception sets with probability weight $\text{rank}^{-\beta}$ and compute the rule's cost from the actual set, instead of from @eq-trule. Here $\beta = 0$ is frequency-neutral, $\beta > 0$ favours frequent items and $\beta < 0$ favours rare ones.
+
+```{python}
+#| label: tbl-biased
+#| tbl-cap: "Largest tolerated number of exceptions when exceptions are sampled with weight rank^(-beta). Cost is computed directly from each sampled exception set."
+tp.rng = np.random.default_rng(0)
+betas = [-1.0, 0.0, 0.25, 0.5, 1.0]
+Ns2 = [20, 100, 500, 1000]
+biased = {}
+for N in Ns2:
+    grid = np.unique(np.round(np.linspace(1, N - 1, min(N - 1, 150))).astype(int))
+    biased[N] = [tp.threshold_biased(N, b, n_samp=100, e_grid=grid) for b in betas]
+t = pd.DataFrame(biased, index=[f"beta = {b}" for b in betas]).T
+t.insert(0, "N / ln N", [N / np.log(N) for N in Ns2])
+t.index.name = "N"
+t.round(1)
+```
+
+```{python}
+#| label: fig-biased
+#| fig-cap: "The same result as a proportion. Frequency-neutral or rare exceptions track 1/ln N. Moderately frequent exceptions give a constant proportion; strongly frequent ones are tolerated almost without limit."
+fig, ax = plt.subplots()
+for j, b in enumerate(betas):
+    ax.plot(Ns2, [biased[N][j] / N for N in Ns2], marker="o", ms=3, label=f"beta = {b}")
+ax.plot(Ns2, [1 / np.log(N) for N in Ns2], "k--", lw=1, label="1 / ln N")
+ax.set_xscale("log"); ax.set_xlabel("N"); ax.set_ylabel("tolerated proportion of exceptions")
+ax.legend(fontsize=8, bbox_to_anchor=(1.02, 1), loc="upper left");
+```
+
+Three things follow.
+
+- With frequency-neutral exceptions ($\beta = 0$), or exceptions that are rarer than average, the model reproduces $N/\ln N$.
+- At $\beta = 0.5$ the threshold becomes a roughly constant proportion of $N$ instead of shrinking as $1/\ln N$.
+- At $\beta = 1$ the rule tolerates the large majority of the class being exceptional.
+
+Real irregulars are concentrated among frequent items. In English child-directed speech, 29 of the 50 most frequent verbs are irregular, against about 10% of verbs overall. Applied honestly to such a lexicon, the processing model predicts much more tolerance than $N/\ln N$. The principle's empirical record is with counts of types, so whatever success it has is achieved despite the cost model, not through it.
+
+## Other assumptions
+
+- **Serial rank-based search** is not the standard view of lexical access, and it predicts that regular forms are slower than frequency-matched irregular ones.
+- **Zipf's exponent is exactly 1.** The $N/\ln N$ form depends on it.
+- **The linking hypothesis is not derived.** The model says which organization is faster. It does not say why speed of access should decide what the grammar is, or why the switch should be categorical at the point of equal cost.
+
+## Summary
+
+The derivation gives $N/\ln N$ as a leading-order approximation, under a serial-search model, for exceptions that are no more frequent than other items. The last condition is the fragile one. This motivates the question for the rest of the book: is there a different argument that yields the same threshold from type counts alone?

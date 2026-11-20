@@ -1,0 +1,123 @@
+# Is there a rule at all? Bayesian model comparison {#sec-bayes}
+
+{{< include _caution.qmd >}}
+
+```{python}
+#| label: setup-bayes
+%run _setup.py
+import bayes_rule as B
+%matplotlib inline
+```
+
+## The proposal
+
+Treat productivity as an inference. The learner compares two hypotheses about a class of $N$ items:
+
+- **Rule.** There is a default form $R$. Each item is an exception with some probability; an exception's form must be learned separately.
+- **No default.** Every item's form is an independent draw from the $K$ possible forms.
+
+The learner adopts the rule when it has the higher marginal likelihood. The result: this gives the shape of the Tolerance Principle under exactly one choice of prior, a fixed expectation of about one exception per rule. If the learner is allowed to *learn* how exception-prone the rule is, the logarithm disappears.
+
+## Why the evidence is type-based
+
+Suppose each item's form is deterministic. After an item's first token, both hypotheses predict its form with certainty, so later tokens carry no information about which hypothesis is right. The evidence is the lexicon of types, $(N, e)$, whatever the token frequencies. Zipfian sampling matters only through which types have been heard so far.
+
+This is a principled reason for the principle's most distinctive empirical property, that it counts types and ignores token frequency. It is the same logic as in two-stage models of the lexicon (Goldwater, Griffiths and Johnson), where the generator of forms sees each stored item once.
+
+## Costs
+
+Write costs as negative log marginal likelihoods in nats. An unpredicted form costs $\ln K$.
+
+**No default:** $\;N \ln K$.
+
+**Rule:** each exception pays $\ln K$ for its form, plus the cost of saying which items are the exceptions. Three versions of that second cost:
+
+| Version | Prior on the exception rate $\varepsilon$ | Cost of the exception set |
+|---|---|---|
+| Sharp | fixed at $\varepsilon = 1/N$ | $e \ln N - (N-e)\ln(1 - 1/N) \approx e \ln N + 1$ |
+| Sparse | $\varepsilon \sim \text{Beta}(1, N)$: mean $1/N$, but learnable | $-\ln \dfrac{B(1+e,\; 2N-e)}{B(1, N)}$ |
+| Learned | $\varepsilon \sim \text{Uniform}(0,1)$ | $\ln\binom{N}{e} + \ln(N+1)$ |
+
+### The sharp prior
+
+The rule wins when $e(\ln N + \ln K) + 1 < N \ln K$, which gives
+
+$$
+e \;<\; \frac{N \ln K}{\ln N + \ln K}.
+$$ {#eq-sharp}
+
+Each exception costs $\ln N$ more than a listed item, and each regular item saves $\ln K$. This has the form of the Tolerance Principle, with $\ln N + \ln K$ in place of $\ln N$ and a constant $\ln K$ in the numerator.
+
+### The learned rate
+
+By Stirling's approximation $\ln\binom{N}{e} \approx N\,h(x)$, where $x = e/N$ and $h$ is the binary entropy in nats. The rule wins when
+
+$$
+h(x) \;<\; (1 - x)\ln K ,
+$$
+
+which depends on $x$ alone. The threshold is a **constant proportion** of $N$. The cost per exception has fallen from $\ln N$ to about $\ln(N/e) + 1$, because a learner who knows that 30% of items are exceptions is no longer surprised by each one.
+
+## Results
+
+```{python}
+#| label: tbl-priors
+#| tbl-cap: "Largest tolerated e against a no-default lister, K = 4, under three priors on the rule's exception rate."
+Ns = [9, 16, 30, 100, 300, 1000, 5000]
+rows = [{"N": N, "N / ln N": round(N / np.log(N), 1),
+         **{r: B.threshold(N, r, B.cost_lister, 4) for r in ("sharp", "sparse", "learned")}} for N in Ns]
+pd.DataFrame(rows).set_index("N")
+```
+
+```{python}
+#| label: fig-priors
+#| fig-cap: "Tolerated proportion of exceptions. The sharp prior declines like 1/ln N; the learned rate is flat; the sparse prior starts like the sharp one and drifts toward a constant."
+NN = np.unique(np.round(np.logspace(np.log10(6), np.log10(20000), 70)).astype(int))
+fig, ax = plt.subplots()
+for r, ls in (("sharp", "-"), ("sparse", "-."), ("learned", ":")):
+    ax.plot(NN, [B.threshold(n, r, B.cost_lister, 4) / n for n in NN], ls=ls, label=f"{r} prior (K = 4)")
+ax.plot(NN, 1 / np.log(NN), "k--", lw=1, label="1 / ln N")
+ax.set_xscale("log"); ax.set_xlabel("N"); ax.set_ylabel("tolerated proportion of exceptions")
+ax.legend(fontsize=8);
+```
+
+### The constant is not pinned down
+
+The sharp-prior threshold depends on $K$.
+
+```{python}
+#| label: tbl-K
+#| tbl-cap: "Sharp prior: largest tolerated e for different numbers of possible forms K."
+Ks = [2, np.e, 4, 8, 20]
+rows = [{"N": N, "N / ln N": round(N / np.log(N), 1),
+         **{f"K = {k:.1f}": B.threshold(N, "sharp", B.cost_lister, k) for k in Ks}} for N in Ns]
+pd.DataFrame(rows).set_index("N")
+```
+
+Setting @eq-sharp equal to $N/\ln N$ gives the value of $K$ that would reproduce the principle at each size: $\ln K = \ln N/(\ln N - 1)$.
+
+```{python}
+#| label: tbl-K-needed
+#| tbl-cap: "Number of forms K at which the sharp-prior threshold equals N / ln N."
+pd.DataFrame({"N": Ns, "K needed": [np.exp(np.log(N) / (np.log(N) - 1)) for N in Ns]}).set_index("N").round(2)
+```
+
+No single $K$ works. It has to be about 6 at $N = 9$ and tends to $e \approx 2.72$ as $N$ grows. At $N = 9$ the threshold runs from 1 ($K = 2$) to 5 ($K = 20$), so whether 4 exceptions among 9 are tolerated depends on a parameter the argument does not fix.
+
+### The alternative hypothesis matters too
+
+The comparison above gives the no-default hypothesis a fixed cost per item. If that hypothesis is also allowed to learn how common the form $R$ is, it becomes the learned-rate model, which is a rule model in all but name. Against it, the sharp rule survives only a handful of exceptions:
+
+```{python}
+#| label: tbl-sharp-vs-learned
+#| tbl-cap: "Sharp rule against an alternative that learns the frequency of R."
+pd.DataFrame({"N": Ns, "largest tolerated e": [B.threshold(N, "sharp", B.cost_learned, 4) for N in Ns]}).set_index("N")
+```
+
+So the Tolerance-like result needs two commitments at once: a rule hypothesis that cannot adjust its exception rate, and an alternative that has no notion of a most common form.
+
+## Summary
+
+Bayesian model comparison explains why the evidence should be counted in types. It yields a threshold of the form $N \cdot \text{const}/(\ln N + \text{const})$ only if the rule hypothesis carries a fixed prior of about one exception per class. That prior makes each exception a separate surprise of size $\ln N$. With a prior that can learn the rate, exceptions share their cost and the threshold is a constant proportion.
+
+Put differently, the principle amounts to a claim that a rule is a *categorical* hypothesis, one that does not come with a tunable exception rate. That is a substantive commitment, and it is the part that would need independent support.

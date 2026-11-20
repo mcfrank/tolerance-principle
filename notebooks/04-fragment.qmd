@@ -1,0 +1,132 @@
+# Storage versus computation: a fragment-style model {#sec-fragment}
+
+{{< include _caution.qmd >}}
+
+```{python}
+#| label: setup-fragment
+%run _setup.py
+import fragment as F
+%matplotlib inline
+```
+
+## The proposal
+
+Fragment Grammars (O'Donnell) treat productivity as Bayesian inference about what to store and what to compute. They are the best-developed rational account in this area, and they belong to the "learned rate" side of the distinction drawn in @sec-bayes: reuse and storage rates are inferred from data. What does a model of that kind say about a rule with exceptions?
+
+This chapter uses a deliberately small model in that style. It is **not** O'Donnell's implementation. It has one partially specified fragment and is small enough to score exactly.
+
+The result: the model uses the rule in almost every condition, down to about three regular types. It does not produce $N/\ln N$, and it is much more permissive than any type-count threshold.
+
+## The model
+
+A token is a stem with a form. It is generated from three linked processes.
+
+**Words.** A Pitman–Yor process with discount $a$ and concentration $b$. A table is either
+
+- a whole stored word, such as *go + went* or *walk + ed*, or
+- the fragment $[\,\_ + R\,]$, with an open stem slot: the productive rule.
+
+Opening a new table costs a draw of a stem and a suffix from the processes below, plus $\rho$ nats for the decisions about what to store.
+
+**Stems.** A second Pitman–Yor process. It receives one customer for each whole-word table, and one customer for each *token* generated through the fragment.
+
+**Suffixes.** A Dirichlet-multinomial over $K$ forms, with one count per word table.
+
+An *analysis* says, for each regular type, whether its tokens come from a stored whole word or through the fragment. Exceptions are always stored whole. The learner takes the analysis with the highest joint probability. For a seating arrangement with table sizes $n_1,\dots,n_T$ and $n = \sum_t n_t$, the Pitman–Yor probability is
+
+$$
+\frac{\prod_{k=1}^{T-1}(b + a k)}{(b+1)_{n-1}} \;\prod_{t=1}^{T} (1-a)_{n_t - 1},
+$$
+
+where $(z)_m$ is the rising factorial.
+
+The search is over the family "the $m$ rarest regular types go through the rule", for $m$ from zero (pure listing) to all of them (the full rule). For $N = 12$ an exhaustive search over every analysis finds the same optimum.
+
+```{python}
+#| label: tbl-validate
+#| tbl-cap: "Exhaustive search over all analyses against the restricted family, N = 12."
+import itertools
+rows = []
+for e in (2, 4, 6, 8):
+    c, exc = F.lexicon(12, e)
+    reg = np.nonzero(~exc)[0]
+    top = -np.inf
+    for bits in itertools.product([False, True], repeat=len(reg)):
+        via = np.zeros(12, bool); via[reg] = bits
+        top = max(top, F.logp(c, exc, via, **F.DEFAULT))
+    m, scores, _ = F.best_analysis(c, exc, **F.DEFAULT)
+    rows.append({"exceptions": e, "exhaustive best log p": top, "family best log p": scores.max(),
+                 "regulars via rule": f"{m} of {len(reg)}"})
+pd.DataFrame(rows).set_index("exceptions").round(3)
+```
+
+Token counts are the expected Zipfian counts at $S = N H_N$, with exceptions spread evenly over the frequency ranks.
+
+## Where the rule stops being used
+
+```{python}
+#| label: tbl-fragment
+#| tbl-cap: "Largest number of exceptions at which the best analysis still sends any regular type through the rule."
+Ns = [9, 20, 50, 100, 200]
+variants = {"default": {}, "b = 0.1": dict(b=0.1, b_s=0.1), "b = 10": dict(b=10.0, b_s=10.0),
+            "discount 0.5": dict(a=0.5, a_s=0.5), "no storage cost": dict(rho=0.0)}
+frag = {k: [F.threshold(N, **v) for N in Ns] for k, v in variants.items()}
+t = pd.DataFrame(frag, index=Ns)
+t.insert(0, "N / ln N", [round(N / np.log(N), 1) for N in Ns])
+t.index.name = "N"
+t
+```
+
+The rule survives until about three regular types are left, and this hardly depends on the concentration, the discount or the storage cost. A rare regular item is cheaper to generate through the fragment than to store as a word of its own, almost regardless of how many exceptions surround it. Exceptions are stored and cost the rule very little.
+
+## Generalization to a new stem
+
+Given the best analysis, the probability that a never-heard stem takes $R$ is
+
+$$
+\Pr(R \mid \text{new stem}) = \frac{n_{\text{frag}} - a + (b + aT)\,\pi_R}{n_{\text{frag}} - a + (b + aT)},
+$$
+
+where $n_{\text{frag}}$ is the number of tokens passing through the fragment, $T$ the number of word tables and $\pi_R$ the suffix process's probability of $R$.
+
+```{python}
+#| label: fig-novel
+#| fig-cap: "N = 200. Probability that a new stem takes the regular form, as exceptions increase. It stays near 1 long after the regular form has become a small minority of types."
+N = 200
+es = list(range(0, N, 5))
+pr = []
+for e in es:
+    c, exc = F.lexicon(N, e)
+    m, _, order = F.best_analysis(c, exc, **F.DEFAULT)
+    pr.append(F.p_regular_novel(c, exc, m, order, **F.DEFAULT))
+fig, ax = plt.subplots()
+ax.plot(np.array(es) / N, pr, label="P(R | new stem)")
+ax.plot(np.array(es) / N, 1 - np.array(es) / N, color="0.6", ls=":", label="share of types taking R")
+ax.axvline(1 / np.log(N), color="k", ls="--", lw=1, label="tolerance threshold")
+ax.set_xlabel("proportion of exceptions"); ax.set_ylabel("probability"); ax.legend(fontsize=8);
+```
+
+Generalization is nearly categorical, and it does not follow the proportion of regular types. It follows the amount of traffic through the fragment. With half the class exceptional the model still applies $R$ to a new stem with probability above 0.99.
+
+## Sample size matters more than exception count
+
+```{python}
+#| label: tbl-fragment-t
+#| tbl-cap: "Largest tolerated e as the sample grows (t in units of N H_N), default parameters."
+rows = [{"N": N, **{f"t = {t}": F.threshold(N, t=t) for t in (0.25, 1, 4, 16)}} for N in (9, 50, 200)]
+pd.DataFrame(rows).set_index("N")
+```
+
+With more exposure, frequent regular items become worth storing whole, which leaves fewer for the rule. The threshold falls with tokens per type, not with the number of exceptions.
+
+## What this means
+
+- **The two accounts differ in kind.** Here productivity is driven by the presence of rare regular types, which is the logic of Baayen's hapax-based measures. Exceptions are close to irrelevant. In the Tolerance Principle, exceptions are the whole story.
+- **The model is too tolerant where the principle has been tested.** At $N = 9$ with 3 regular and 6 exceptional items, it still uses the rule at moderate exposure. Children in Schuler, Yang and Newport's experiment did not generalize in that condition.
+- **The claim in @sec-bayes needs refining.** A learned rate gave a constant proportion there because the alternative paid a fixed cost per item. Here both sides pay the same adaptive storage costs, and the rule wins almost always. What survives is that no logarithmic threshold appears.
+
+## Limits of this model
+
+- **Exceptions cannot form sub-rules.** If several exceptions shared a form and could have a fragment of their own, the fragments would compete for new stems in proportion to their traffic. That could make the model sensitive to exception proportions, and it is the most important missing piece.
+- **Deterministic counts and a single best analysis.** A sampler over analyses would average over mixtures.
+- **One rule, one class.** Real Fragment Grammars learn many fragments jointly.
