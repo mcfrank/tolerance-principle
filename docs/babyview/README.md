@@ -54,3 +54,38 @@ files below were produced from them. They live in `data/babyview/` (git-ignored)
 - CDI `value`: `produces` / `understands` (WG) / blank for checklist items;
   `not yet` / `sometimes` / `often` for the `word_endings` questions. Only
   completed English administrations are included.
+
+## Contamination diagnostics (`03_diagnostics.py`, 2026-11-20)
+
+For the same 23 children (6.8M tokens; 902k labelled KCHI):
+
+| age (months) | KCHI share of tokens | KCHI verb rate | adult verb rate |
+|---|---|---|---|
+| <14 | 0.084 | 0.192 | 0.218 |
+| 14–17 | 0.101 | 0.188 | 0.219 |
+| 18–21 | 0.114 | 0.173 | 0.217 |
+| 22–25 | 0.167 | 0.173 | 0.217 |
+| 26+ | 0.211 | 0.192 | 0.213 |
+
+The rate of verbs from the whitelist among KCHI tokens is flat with age and close to
+the adult rate, even before 14 months. So the words in KCHI segments look like adult
+language at every age. None of the transcript-side signals bring the rate under 14 months
+anywhere near zero:
+
+- **ASR score.** The top score quartile has the lowest rate, but it is still 0.13 under
+  14 months.
+- **Pure-KCHI utterances.** The rate is 0.16; 22% of utterances carry more than one
+  speaker label.
+- **`speaker_id` cluster agreement.** It makes no difference: the rate is 0.19 whatever
+  the cluster's majority voice type.
+
+KCHI utterances under 14 months are short (median 1 token), which fits real child
+vocalisations that the ASR has turned into words as well as adult speech labelled as the
+child. The text can't tell these apart.
+
+**Until an audio-based fix exists, treat `child_verb_counts.csv` and `child_verb_forms.csv`
+as unusable for measuring child production.**
+
+Audio on ccn2: 6,030 of 12,374 recordings, holding 52.5% of tokens, have an mp3 in
+`2025.2/mp3`. None of these recordings is in `2026.1/mp3` yet. The rest would have to be
+staged from GCS/Oak.
