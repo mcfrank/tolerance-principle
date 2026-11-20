@@ -1,0 +1,7 @@
+{
+  "n_children": 23,
+  "n_child_tokens": 902201,
+  "n_child_verb_tokens_whitelist": 168273,
+  "part_of_speech_used": true,
+  "note": "verbs identified by tagger part of speech"
+}
