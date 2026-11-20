@@ -15,5 +15,20 @@ The rendered site goes to `_book/` (not committed). `_freeze/` holds cached cell
 is committed, so unchanged chapters are not re-run. If the code in `../sims/` changes but a
 chapter's source does not, delete that chapter's folder under `_freeze/` to force a re-run.
 
-The book has not been published. It contains no participant data; the corpus and BabyView
-analyses live in `../data/` and are not part of it.
+## Publishing
+
+The book is published at <https://mcfrank.quarto.pub/tolerance-principle/>. `_publish.yml`
+records the site, so re-publishing updates the same address:
+
+```
+./render.sh
+quarto publish quarto-pub --no-render --no-prompt
+```
+
+This needs a Quarto Pub token (`QUARTO_PUB_AUTH_TOKEN`, or a stored login). If the tool's
+uploads fail behind a network proxy, `python3 publish_curl.py` makes the same API calls
+with curl.
+
+The address is public. The book contains no participant data: the corpus and BabyView
+analyses live in `../data/` and are not part of it. Keep it that way, or get the data
+owner's clearance before publishing a chapter that changes this.

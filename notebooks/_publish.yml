@@ -1,0 +1,4 @@
+- source: project
+  quarto-pub:
+    - id: 6b6f6068-b0c7-419e-92c7-c2a9d91c6d4c
+      url: 'https://mcfrank.quarto.pub/tolerance-principle/'
