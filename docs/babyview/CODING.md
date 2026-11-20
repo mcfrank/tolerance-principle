@@ -8,10 +8,16 @@ context on either side. The sheet gives the target window as `target_start_s` /
 `target_end_s` within the clip. Listen as many times as you need.
 
 **Data rules:** BabyView audio is restricted. The clips and the sheet live on ccn2
-(`/data2/mcfrank/tp_babyview/listening/`) and must not be copied off the cluster, uploaded
-anywhere, or played to anyone without BabyView access.
+(`/data2/mcfrank/tp_babyview/listening/`) and in the Stanford Google Drive folder
+`babyview-babar-check`. Work from there. Don't copy them anywhere else, don't upload them
+to any other service (including AI tools), and don't play them to anyone without BabyView
+access. If you unzip the clips on your computer, delete them when you're done.
 
-## For each row of `sheet.csv`
+**On Drive:** the clips are in four zips (`clips_part1of3`, `clips_part2a_of3`, `clips_part2b_of3`,
+`clips_part3of3`). Unzipped into one place, they give a `clips/` folder with `c001.wav` to
+`c249.wav`, matching the sheet's `file` column. Code in the `coding_sheet` Google Sheet.
+
+## For each row of the sheet (`coding_sheet` on Drive, `sheet.csv` on ccn2)
 
 Code `speaker` and `speech_type` **before** you look at `asr_word`.
 
