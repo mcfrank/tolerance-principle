@@ -142,3 +142,51 @@ what remains is mostly real child vocalisation with hallucinated words on top.
 child-labelled stretches under 14 months), but ASR hallucination is the larger problem.
 Filters on segments won't recover child verb counts. Words need to be checked acoustically
 one at a time.
+
+## Per-word acoustic support (`07_word_scores.py`, `08_word_score_summary.py`, 2026-11-20)
+
+**Method.** For each transcript token, take BabAR's CTC frame log-probs over the token's
+time window ±0.1 s, inside the usual 20 s context. Compute the log-likelihood of the ASR
+word's pronunciation (CMUdict mapped to BabAR's symbols), then *support*: the share of 50
+length-matched null words (same phoneme count, same speaker and band) that it beats. If a
+word is invented, support is uniform: 10% of tokens reach ≥ 0.9 by chance. The first
+version used nulls that weren't length-matched, and short words won by default. That bias
+is fixed: support is now flat across word length.
+
+| tokens | n | mean support | share ≥ 0.9 |
+|---|---|---|---|
+| FEM <14 | 2,515 | 0.73 | 0.46 |
+| FEM 26+ | 1,423 | 0.77 | 0.55 |
+| KCHI <14 | 3,374 | 0.60 | 0.28 |
+| KCHI 26+ | 5,088 | 0.73 | 0.49 |
+
+- BabAR's frames *do* encode adult phonetics even though its greedy output is blank.
+  Support therefore detects invented words, not adult speech.
+- Under 14 months, 28% of KCHI tokens reach ≥ 0.9. That's about what you'd get if roughly
+  a third of the stretches were real adult speech and the rest invented words on infant
+  vocalisations.
+
+**KCHI verb rate under filters** (*child voice* = VTC 2.0 rerun says KCHI and BabAR heard the
+stretch; *no adult* = the token's time span touches no VTC FEM/MAL segment; adult rate 0.22):
+
+| filter | <14: n, verb rate | 26+: n, verb rate |
+|---|---|---|
+| none | 3,374, 0.195 | 5,088, 0.210 |
+| support ≥ 0.9 | 944, 0.154 | 2,505, 0.193 |
+| child voice + no adult + support ≥ 0.9 | 434, 0.177 | 1,845, 0.216 |
+
+Even with every filter applied, the words under 14 months still look like adult speech.
+The most likely explanation is adult speech (perhaps infant-directed) that *both*
+BabyHuBERT-based classifiers attribute to the child, so their errors are correlated. Only
+listening can settle it.
+
+**Irregular verbs (pilot).** There are 627 KCHI tokens of lemmas with attested
+overregularisations. Only 59 at 26+ months were heard by the ASR as the irregular form, and
+in about 5% of those the regularised form wins by more than 2 nats, the same rate as under
+14 months, i.e. noise. The best-candidate table is biased toward the "irregular" category,
+which has several candidate forms per lemma. The pilot is far too small to detect
+overregularisations at child base rates (a few percent of irregular past tokens).
+
+**Status:** the scorer is calibrated as a detector of invented words, but it doesn't
+produce a clean infant word stream. The next decisive step is human listening to a sample
+of the filtered tokens.
