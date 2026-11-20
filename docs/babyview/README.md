@@ -89,3 +89,56 @@ as unusable for measuring child production.**
 Audio on ccn2: 6,030 of 12,374 recordings, holding 52.5% of tokens, have an mp3 in
 `2025.2/mp3`. None of these recordings is in `2026.1/mp3` yet. The rest would have to be
 staged from GCS/Oak.
+
+## BabAR pilot (`04`–`06`, `run_pilot.sh`, 2026-11-20)
+
+**Audio:** all 2026.1 audio is already on ccn2 at `/ccn2b/dataset/babyview/2026.1/mp3/`
+(16,305 mp3s; one extraction failure is listed in `outputs/mp3_failures.tsv`). Nothing
+needs staging.
+
+**Pilot set:** up to 3 random recordings per child per band, each with ≥ 20 KCHI tokens.
+That gives 66 recordings under 14 months (22 children) and 40 at 26 months or older
+(14 children). The run used BabAR 1.4.2 with its bundled VTC 2.0, on one A40, in about
+5 minutes.
+
+**A. Existing labels vs a fresh VTC 2.0 run** (token midpoints). FEM tokens: 93% fall in
+VTC 2.0 FEM segments. MAL tokens: 92% fall in MAL segments. KCHI tokens: 81% fall in KCHI
+segments (69% under 14 months, 89% at 26+). This fits the existing labels being VTC 2.0
+(differences in thresholds or chunking would explain the rest), and it confirms that the
+mp3s line up with the transcript times.
+
+**B. BabAR output** (share of segments where BabAR returns no phonemes):
+
+| segments | <14 mo | 26+ mo |
+|---|---|---|
+| VTC 2.0 KCHI | 0.156 | 0.107 |
+| existing-transcript KCHI stretches | 0.387 | 0.201 |
+| VTC 2.0 FEM/MAL (control) | 0.812 | 0.785 |
+
+The control works: BabAR mostly returns nothing for adult speech. If the
+existing-transcript stretches are a mixture of child-like and adult-like segments, about
+35% of them under 14 months, and about 14% at 26+, behave like adult speech.
+
+**C. Do Whisper's words match what BabAR hears?** This is a normalised edit distance on
+consonant skeletons, compared against a shuffled pairing within the same band:
+
+| band | segments | matched | shuffled (sd) |
+|---|---|---|---|
+| <14 | single word (430) | 0.846 | 0.850 (0.006) |
+| <14 | multi-word (204) | 0.813 | 0.843 (0.004) |
+| 26+ | single word (224) | 0.846 | 0.875 (0.006) |
+| 26+ | multi-word (172) | 0.690 | 0.785 (0.007) |
+
+At 26+ months the words carry real acoustic signal. Under 14 months, single words are
+indistinguishable from chance: the words Whisper assigns to infant vocalisations are
+largely invented.
+
+**D. KCHI verb rate under filters.** Under 14 months the rate is 0.191 unfiltered and 0.197
+when restricted to tokens that VTC 2.0 calls KCHI *and* where BabAR heard something. The
+adult rate is 0.218. Cleaning up the speaker labels doesn't fix the verb counts, because
+what remains is mostly real child vocalisation with hallucinated words on top.
+
+**Takeaway:** diarization explains part of the contamination (roughly a third of the
+child-labelled stretches under 14 months), but ASR hallucination is the larger problem.
+Filters on segments won't recover child verb counts. Words need to be checked acoustically
+one at a time.
