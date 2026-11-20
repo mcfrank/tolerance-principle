@@ -1,9 +1,10 @@
 """Publish the already-rendered _book/ to Quarto Pub using curl for the HTTP calls.
 
-`quarto publish quarto-pub --no-render --no-prompt` is the normal route. In the
-cloud session this book was written in, the tool's own uploads of image files
-failed behind the network proxy, so this script repeats the same API calls
-(create a deploy, upload the files the server asks for, wait until ready).
+`quarto publish quarto-pub --no-render --no-prompt` is the normal route. In a
+cloud session behind a network proxy, the tool's own requests can fail (uploads
+of image files, some status checks), so this script repeats the same API calls
+with curl: create a deploy, upload the files the server asks for, wait until
+ready, update the account page. Run it from the book directory.
 
 Needs _publish.yml (site id) and a Quarto Pub token. The token is read from
 QUARTO_PUB_AUTH_TOKEN if set; behind a proxy that injects it, leave it unset.
@@ -70,3 +71,6 @@ for _ in range(240):
     time.sleep(0.5)
 else:
     sys.exit("deploy did not become ready")
+code, body = call("PUT", "update-account-site")
+print("account page:", body[:120] if code in (200, 201) else f"not updated (HTTP {code})")
+print("A new site can take a minute or two to start serving. Poll the public address; do not re-publish.")
