@@ -22,6 +22,17 @@ There are four ingredients.
 3. **Zipf's law.** The item at rank $i$ has probability $p_i = 1/(i\,H_N)$.
 4. **The learner chooses the faster organization.**
 
+### What $T$ measures
+
+The quantity being compared, $T$, is an expected **time**: the average number of search steps needed to retrieve the right form for one word token, averaged over tokens in proportion to how often each word occurs. It is a cost of *using* the lexicon, paid each time a word is produced or recognized. It is not a cost of storing the system or of learning it. (Storage costs are the subject of @sec-mdl.)
+
+Take the English past tense. $N$ is the number of verbs the learner knows and $e$ the number of those that are irregular.
+
+- $T_{\text{list}}(N)$ is the expected time per verb token if every verb's past form is stored and looked up in one frequency-ordered list.
+- $T_{\text{rule}}(N, e)$ is the expected time if only the $e$ irregular verbs are listed and searched first, and every other verb gets *-ed*.
+
+The learner is assumed to adopt whichever organization has the smaller $T$. The next two subsections work out each one.
+
 ### Listing everything
 
 With no rule, all $N$ items sit in one frequency-ordered list. The item at rank $i$ costs $i$ steps and occurs with probability $p_i$, so the expected cost is

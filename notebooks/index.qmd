@@ -10,10 +10,14 @@ $$
 
 It is a strong claim. It is stricter than majority rule once $N$ exceeds about 8, and the tolerated *proportion* of exceptions, $1/\ln N$, keeps shrinking as the class grows: about 46% at $N = 9$, 22% at $N = 100$, 14% at $N = 1{,}000$.
 
-The principle is usually derived from a model of real-time lexical processing. This book asks two questions about that derivation.
+The principle is usually derived from a model of real-time lexical processing. Part I of this book asks two questions about that derivation.
 
 1. Does the derivation hold up on its own terms?
 2. Is there an independent rational analysis, of learning, inference or storage, that yields the same threshold?
+
+Part II asks a third.
+
+3. What does the evidence require of any such account, and how could the functional form be tested?
 
 ## Short answers
 
@@ -21,7 +25,11 @@ The principle is usually derived from a model of real-time lexical processing. T
 2. **Most rational analyses do not produce it.** A learner minimizing errors never has a reason to reject a rule (@sec-learnability). Bayesian model comparison and optimal description length give a threshold that is a constant proportion of $N$ (@sec-bayes, @sec-mdl). A storage-versus-computation model in the style of Fragment Grammars is far more permissive still (@sec-fragment).
 3. **One structural assumption does produce it.** $N/\ln N$ appears whenever each exception carries its own fixed cost of about $\ln N$ that is not shared with the other exceptions: a step in a serial search, a full address in memory, or a separate surprise under a prior that says rules have about one exception. Wherever the cost of exceptions can be pooled, the logarithm disappears (@sec-synthesis).
 
+4. **The evidence does not pin down the form.** Experiments cover only small classes, where $N/\ln N$ is hard to tell apart from a fixed proportion, and no study varies $N$ at a fixed proportion of exceptions (@sec-evidence). Corpus data span the right range of $N$, but a child's verb vocabulary cannot be read off transcripts or a parent checklist without strong assumptions (@sec-strategies).
+
 ## Chapters
+
+**Part I: Derivations**
 
 | Chapter | Question | Result |
 |---|---|---|
@@ -30,7 +38,14 @@ The principle is usually derived from a model of real-time lexical processing. T
 | @sec-bayes | Does Bayesian comparison of "rule" and "no rule" give it? | Only with a fixed prior of about one exception per rule |
 | @sec-fragment | What does a storage-versus-computation model predict? | The rule survives almost any number of exceptions |
 | @sec-mdl | What does optimal description length predict? | A constant proportion; $N/\ln N$ needs an ordered list of named exceptions |
-| @sec-synthesis | What do the positive cases share, and what do the data require? | Unshared exception costs; the data do not pin down the functional form |
+| @sec-synthesis | What do the positive cases share? | Each exception carries its own unshared cost of about $\ln N$ |
+
+**Part II: Empirical strategies**
+
+| Chapter | Question | Result |
+|---|---|---|
+| @sec-evidence | What do existing experiments and corpus studies constrain? | "Stricter than majority for large classes", but not the form of the curve |
+| @sec-strategies | Experiment or corpus: how could the form be tested? | Each route has a specific obstacle; pairing parent report with recordings may remove the corpus one |
 
 ## Notation
 
@@ -48,4 +63,4 @@ Used throughout:
 | $K$ | number of possible forms an item could take |
 | $c$ | cost in nats of storing one form ($c = \ln K$ when forms are equiprobable) |
 
-All costs are in nats. Every table and figure is computed in the chapter from the code in `sims/`.
+All costs are in nats. In Part I every table and figure is computed in the chapter from the code in `sims/`. In Part II, figures of our own analyses are drawn from a small file of aggregates (`notebooks/results/empirical.json`) built from Wordbank and CHILDES, and tables of other people's results are entered by hand.

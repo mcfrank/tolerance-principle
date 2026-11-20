@@ -4,15 +4,21 @@ project:
 
 book:
   title: "Where does the Tolerance Principle come from?"
-  subtitle: "Its derivation, and rational analyses that do and do not reproduce it"
+  subtitle: "Its derivation, rational analyses that do and do not reproduce it, and how it could be tested"
   chapters:
     - index.qmd
-    - 01-derivation.qmd
-    - 02-learnability.qmd
-    - 03-bayes.qmd
-    - 04-fragment.qmd
-    - 05-description-length.qmd
-    - 06-synthesis.qmd
+    - part: "Part I: Derivations"
+      chapters:
+        - 01-derivation.qmd
+        - 02-learnability.qmd
+        - 03-bayes.qmd
+        - 04-fragment.qmd
+        - 05-description-length.qmd
+        - 06-synthesis.qmd
+    - part: "Part II: Empirical strategies"
+      chapters:
+        - 07-evidence.qmd
+        - 08-strategies.qmd
     - references.qmd
 
 bibliography: references.bib
